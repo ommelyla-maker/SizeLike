@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SizeLike — Compare Anything</title>
+<style>
+:root{--p:#5b4ce6;--p2:#7c3aed;--ink:#172033;--muted:#667085;--line:#e4e5ee}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;color:var(--ink);background:linear-gradient(135deg,#f5f7ff,#fff 52%,#f4efff)}
+.wrap{max-width:1080px;margin:auto;padding:28px 20px 60px}.logo{font-size:26px;font-weight:800}.logo span{color:var(--p)}
+.hero{padding:55px 5px}.hero h1{font-size:clamp(42px,7vw,72px);line-height:1.02;letter-spacing:-2px;margin:0 0 18px}.hero h1 span{color:var(--p)}
+.hero p{font-size:18px;line-height:1.6;color:var(--muted);max-width:650px}.card{background:#fff;border:1px solid var(--line);border-radius:24px;padding:26px;box-shadow:0 18px 55px #27305a12}
+.top{display:flex;justify-content:space-between;align-items:center;gap:15px}.top h2{margin:0}.reset{background:#fff;border:1px solid #ddd;padding:11px 15px;border-radius:11px;cursor:pointer;font-weight:700}
+.inputs{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:22px 0}.field label{display:block;font-size:13px;font-weight:700;margin-bottom:7px}.field input{width:100%;padding:15px;border:1px solid #ddd;border-radius:13px;font-size:18px}
+.units{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}.units button{background:#fff;border:1px solid #ddd;padding:10px 14px;border-radius:11px;cursor:pointer}.units .active{background:#efedff;color:#4637cc;border-color:#7567ef}
+.compare{width:100%;border:0;border-radius:14px;padding:16px;color:#fff;font-size:16px;font-weight:bold;cursor:pointer;background:linear-gradient(100deg,var(--p),var(--p2))}
+.hint{text-align:right;color:var(--muted);font-size:12px;margin-top:8px}.result{display:none;margin-top:22px;padding:23px;background:#effcf4;border:1px solid #ccefd9;border-radius:18px}.result.show{display:block}
+.result h2{margin:8px 0;font-size:30px}.result p{color:#496356}.details{display:flex;gap:9px;flex-wrap:wrap}.detail{background:#fff;border:1px solid #dcefe4;padding:9px 12px;border-radius:10px;font-size:13px}
+.scale{margin-top:45px}.scale h2{text-align:center;font-size:28px}.scale>p{text-align:center;color:var(--muted)}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:15px}
+.example{background:#fff;border:1px solid var(--line);border-radius:18px;padding:19px;text-align:center;cursor:pointer;transition:.2s}.example:hover{transform:translateY(-4px);box-shadow:0 12px 30px #0001}.emoji{font-size:40px}.example strong{display:block;margin:9px 0 5px}.example small{color:var(--muted);font-size:12px}.note{text-align:center;color:var(--muted);font-size:12px;margin:30px auto;max-width:760px;line-height:1.5}
+@media(max-width:700px){.hero{padding:35px 4px}.inputs{grid-template-columns:1fr}.grid{grid-template-columns:repeat(2,1fr)}.top{flex-direction:column;align-items:flex-start}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="logo">Size<span>Like</span></div>
+<section class="hero">
+<h1>How big is your product <span>really?</span></h1>
+<p>From tiny objects around <b>1 millimetre</b> to an <b>average house</b>, enter your dimensions and find a familiar comparison.</p>
+</section>
+
+<main class="card">
+<div class="top"><h2>📦 Enter your product dimensions</h2><button class="reset" onclick="resetForm()">↻ Reset</button></div>
+<div class="inputs">
+<div class="field"><label>Length</label><input id="length" type="number" min="0" step="any"></div>
+<div class="field"><label>Width</label><input id="width" type="number" min="0" step="any"></div>
+<div class="field"><label>Height</label><input id="height" type="number" min="0" step="any"></div>
+</div>
+<div class="units">
+<button class="active" onclick="setUnit('mm',this)">mm (millimetres)</button>
+<button onclick="setUnit('cm',this)">cm (centimetres)</button>
+<button onclick="setUnit('m',this)">m (metres)</button>
+<button onclick="setUnit('ft',this)">ft (feet)</button>
+</div>
+<button class="compare" onclick="compare()">Compare the size →</button>
+<div class="hint">Tip: press Enter after entering your dimensions.</div>
+<div class="result" id="result"><b>★ CLOSEST FAMILIAR MATCH</b><h2 id="title"></h2><p id="text"></p><div class="details" id="details"></div></div>
+</main>
+
+<section class="scale"><h2>✨ Examples across the whole size scale</h2><p>Click any example to load its approximate dimensions.</p><div class="grid" id="grid"></div></section>
+<p class="note">Reference dimensions are approximate and illustrative. Real household items vary by model, country and manufacturer.</p>
+</div>
+
+<script>
+let unit='mm';
+const objects=[
+['Grain of salt','🧂',[1,1,1]],['Rice grain','🍚',[7,2,2]],['Paperclip','📎',[32,8,1]],['Coin','🪙',[24,24,2]],
+['Credit card','💳',[86,54,1]],['Smartphone','📱',[150,72,8]],['Mug','☕',[100,80,100]],['Laptop','💻',[360,240,20]],
+['Microwave','🍲',[500,400,300]],['Suitcase','🧳',[550,350,230]],['Washing machine','🧺',[600,600,850]],['Standard door','🚪',[35,760,1980]],
+['Refrigerator','🧊',[700,700,1800]],['3-seat sofa','🛋️',[2100,900,850]],['Double bed','🛏️',[1900,1350,600]],
+['Dining table','🍽️',[1800,900,750]],['Garden shed','🏚️',[2400,1800,2200]],['Family car','🚗',[4500,1800,1450]],
+['Small garage','🚙',[5500,3000,2400]],['Average house','🏠',[12000,8000,8000]]
+];
+const featured=[0,1,4,5,7,10,11,12,14,17,19];
+
+function toMM(v){return unit==='mm'?v:unit==='cm'?v*10:unit==='m'?v*1000:v*304.8}
+function fromMM(v){return unit==='mm'?v:unit==='cm'?v/10:unit==='m'?v/1000:v/304.8}
+function fmt(v){if(unit==='mm')return Math.round(v).toLocaleString();if(unit==='cm')return v.toFixed(v<10?1:0);if(unit==='m')return v.toFixed(v<10?2:1);return v.toFixed(v<10?2:1)}
+function setUnit(u,b){unit=u;document.querySelectorAll('.units button').forEach(x=>x.classList.remove('active'));b.classList.add('active');resetForm()}
+function dist(a,b){a=[...a].sort((x,y)=>x-y);b=[...b].sort((x,y)=>x-y);return Math.sqrt(a.reduce((s,v,i)=>s+Math.log((v+1)/(b[i]+1))**2,0)/3)}
+function compare(){
+ const raw=[length,width,height].map(x=>parseFloat(x.value));
+ if(raw.some(v=>!Number.isFinite(v)||v<=0)){alert('Please enter a positive value for length, width and height.');return}
+ const a=raw.map(toMM);
+ const best=objects.map(o=>[o,dist(a,o[2])]).sort((x,y)=>x[1]-y[1])[0][0];
+ title.textContent=best[1]+' '+best[0];
+ text.textContent='Your product is approximately the overall size of a '+best[0].toLowerCase()+'.';
+ details.innerHTML='<div class="detail">📦 Your size: <b>'+raw.map(fmt).join(' × ')+' '+unit+'</b></div><div class="detail">📏 Reference: <b>'+best[2].map(x=>fmt(fromMM(x))).join(' × ')+' '+unit+'</b></div>';
+ result.classList.add('show');
+}
+function resetForm(){[length,width,height].forEach(x=>x.value='');result.classList.remove('show');length.focus()}
+function fill(i){const o=objects[i];[length,width,height].forEach((x,n)=>x.value=fmt(fromMM(o[2][n])));compare()}
+grid.innerHTML=featured.map(i=>{const o=objects[i];return '<div class="example" onclick="fill('+i+')"><div class="emoji">'+o[1]+'</div><strong>'+o[0]+'</strong><small>Click to try this size →</small></div>'}).join('');
+document.querySelectorAll('input').forEach(x=>x.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();compare()}}));
+</script>
+</body>
+</html>
