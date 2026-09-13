@@ -52,36 +52,179 @@
 </div>
 
 <script>
-let unit='mm';
-const objects=[
-['Grain of salt','🧂',[1,1,1]],['Rice grain','🍚',[7,2,2]],['Paperclip','📎',[32,8,1]],['Coin','🪙',[24,24,2]],
-['Credit card','💳',[86,54,1]],['Smartphone','📱',[150,72,8]],['Mug','☕',[100,80,100]],['Laptop','💻',[360,240,20]],
-['Microwave','🍲',[500,400,300]],['Suitcase','🧳',[550,350,230]],['Washing machine','🧺',[600,600,850]],['Standard door','🚪',[35,760,1980]],
-['Refrigerator','🧊',[700,700,1800]],['3-seat sofa','🛋️',[2100,900,850]],['Double bed','🛏️',[1900,1350,600]],
-['Dining table','🍽️',[1800,900,750]],['Garden shed','🏚️',[2400,1800,2200]],['Family car','🚗',[4500,1800,1450]],
-['Small garage','🚙',[5500,3000,2400]],['Average house','🏠',[12000,8000,8000]]
-];
-const featured=[0,1,4,5,7,10,11,12,14,17,19];
+let unit = 'mm';
 
-function toMM(v){return unit==='mm'?v:unit==='cm'?v*10:unit==='m'?v*1000:v*304.8}
-function fromMM(v){return unit==='mm'?v:unit==='cm'?v/10:unit==='m'?v/1000:v/304.8}
-function fmt(v){if(unit==='mm')return Math.round(v).toLocaleString();if(unit==='cm')return v.toFixed(v<10?1:0);if(unit==='m')return v.toFixed(v<10?2:1);return v.toFixed(v<10?2:1)}
-function setUnit(u,b){unit=u;document.querySelectorAll('.units button').forEach(x=>x.classList.remove('active'));b.classList.add('active');resetForm()}
-function dist(a,b){a=[...a].sort((x,y)=>x-y);b=[...b].sort((x,y)=>x-y);return Math.sqrt(a.reduce((s,v,i)=>s+Math.log((v+1)/(b[i]+1))**2,0)/3)}
-function compare(){
- const raw=[length,width,height].map(x=>parseFloat(x.value));
- if(raw.some(v=>!Number.isFinite(v)||v<=0)){alert('Please enter a positive value for length, width and height.');return}
- const a=raw.map(toMM);
- const best=objects.map(o=>[o,dist(a,o[2])]).sort((x,y)=>x[1]-y[1])[0][0];
- title.textContent=best[1]+' '+best[0];
- text.textContent='Your product is approximately the overall size of a '+best[0].toLowerCase()+'.';
- details.innerHTML='<div class="detail">📦 Your size: <b>'+raw.map(fmt).join(' × ')+' '+unit+'</b></div><div class="detail">📏 Reference: <b>'+best[2].map(x=>fmt(fromMM(x))).join(' × ')+' '+unit+'</b></div>';
- result.classList.add('show');
+const lengthInput = document.getElementById('length');
+const widthInput = document.getElementById('width');
+const heightInput = document.getElementById('height');
+const resultBox = document.getElementById('result');
+const titleEl = document.getElementById('title');
+const textEl = document.getElementById('text');
+const detailsEl = document.getElementById('details');
+const gridEl = document.getElementById('grid');
+
+const objects = [
+  ['Grain of salt','🧂',[1,1,1]],
+  ['Rice grain','🍚',[7,2,2]],
+  ['Paperclip','📎',[32,8,1]],
+  ['Coin','🪙',[24,24,2]],
+  ['Credit card','💳',[86,54,1]],
+  ['Smartphone','📱',[150,72,8]],
+  ['Mug','☕',[100,80,100]],
+  ['Laptop','💻',[360,240,20]],
+  ['Microwave','🍲',[500,400,300]],
+  ['Suitcase','🧳',[550,350,230]],
+  ['Washing machine','🧺',[600,600,850]],
+  ['Standard door','🚪',[35,760,1980]],
+  ['Refrigerator','🧊',[700,700,1800]],
+  ['3-seat sofa','🛋️',[2100,900,850]],
+  ['Double bed','🛏️',[1900,1350,600]],
+  ['Dining table','🍽️',[1800,900,750]],
+  ['Garden shed','🏚️',[2400,1800,2200]],
+  ['Family car','🚗',[4500,1800,1450]],
+  ['Small garage','🚙',[5500,3000,2400]],
+  ['Average house','🏠',[12000,8000,8000]]
+];
+
+const featured = [0,1,4,5,7,10,11,12,14,17,19];
+
+function toMM(v) {
+  if (unit === 'mm') return v;
+  if (unit === 'cm') return v * 10;
+  if (unit === 'm') return v * 1000;
+  return v * 304.8;
 }
-function resetForm(){[length,width,height].forEach(x=>x.value='');result.classList.remove('show');length.focus()}
-function fill(i){const o=objects[i];[length,width,height].forEach((x,n)=>x.value=fmt(fromMM(o[2][n])));compare()}
-grid.innerHTML=featured.map(i=>{const o=objects[i];return '<div class="example" onclick="fill('+i+')"><div class="emoji">'+o[1]+'</div><strong>'+o[0]+'</strong><small>Click to try this size →</small></div>'}).join('');
-document.querySelectorAll('input').forEach(x=>x.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();compare()}}));
+
+function fromMM(v, targetUnit = unit) {
+  if (targetUnit === 'mm') return v;
+  if (targetUnit === 'cm') return v / 10;
+  if (targetUnit === 'm') return v / 1000;
+  return v / 304.8;
+}
+
+function fmt(v) {
+  if (unit === 'mm') return Math.round(v).toLocaleString();
+  if (unit === 'cm') return v.toFixed(v < 10 ? 1 : 0);
+  if (unit === 'm') return v.toFixed(v < 10 ? 2 : 1);
+  return v.toFixed(v < 10 ? 2 : 1);
+}
+
+function setUnit(newUnit, button) {
+  // Preserve entered dimensions and convert them to the newly selected unit.
+  const inputs = [lengthInput, widthInput, heightInput];
+  const values = inputs.map(input => parseFloat(input.value));
+
+  if (values.every(Number.isFinite)) {
+    const oldUnit = unit;
+    const inMM = values.map(v => {
+      if (oldUnit === 'mm') return v;
+      if (oldUnit === 'cm') return v * 10;
+      if (oldUnit === 'm') return v * 1000;
+      return v * 304.8;
+    });
+
+    unit = newUnit;
+
+    inputs.forEach((input, i) => {
+      let converted;
+      if (newUnit === 'mm') converted = inMM[i];
+      else if (newUnit === 'cm') converted = inMM[i] / 10;
+      else if (newUnit === 'm') converted = inMM[i] / 1000;
+      else converted = inMM[i] / 304.8;
+
+      input.value = Number(converted.toFixed(6)).toString();
+    });
+  } else {
+    unit = newUnit;
+  }
+
+  document.querySelectorAll('.units button').forEach(b => b.classList.remove('active'));
+  button.classList.add('active');
+
+  if (values.every(Number.isFinite)) compare();
+}
+
+function dist(a, b) {
+  a = [...a].sort((x, y) => x - y);
+  b = [...b].sort((x, y) => x - y);
+
+  return Math.sqrt(
+    a.reduce((sum, v, i) => {
+      return sum + Math.log((v + 1) / (b[i] + 1)) ** 2;
+    }, 0) / 3
+  );
+}
+
+function compare() {
+  const raw = [
+    lengthInput.value,
+    widthInput.value,
+    heightInput.value
+  ].map(v => parseFloat(v));
+
+  if (raw.some(v => !Number.isFinite(v) || v <= 0)) {
+    alert('Please enter a positive value for length, width and height.');
+    return;
+  }
+
+  const dimensionsMM = raw.map(toMM);
+
+  const ranked = objects
+    .map(object => [object, dist(dimensionsMM, object[2])])
+    .sort((a, b) => a[1] - b[1]);
+
+  const best = ranked[0][0];
+
+  titleEl.textContent = best[1] + ' ' + best[0];
+  textEl.textContent =
+    'Your product is approximately the overall size of a ' +
+    best[0].toLowerCase() + '.';
+
+  detailsEl.innerHTML =
+    '<div class="detail">📦 Your size: <b>' +
+    raw.map(fmt).join(' × ') + ' ' + unit +
+    '</b></div>' +
+    '<div class="detail">📏 Reference: <b>' +
+    best[2].map(x => fmt(fromMM(x))).join(' × ') + ' ' + unit +
+    '</b></div>';
+
+  resultBox.classList.add('show');
+}
+
+function resetForm() {
+  [lengthInput, widthInput, heightInput].forEach(input => input.value = '');
+  resultBox.classList.remove('show');
+  lengthInput.focus();
+}
+
+function fill(index) {
+  const object = objects[index];
+
+  [lengthInput, widthInput, heightInput].forEach((input, n) => {
+    input.value = Number(fromMM(object[2][n]).toFixed(6)).toString();
+  });
+
+  compare();
+}
+
+gridEl.innerHTML = featured.map(index => {
+  const object = objects[index];
+
+  return '<div class="example" onclick="fill(' + index + ')">' +
+    '<div class="emoji">' + object[1] + '</div>' +
+    '<strong>' + object[0] + '</strong>' +
+    '<small>Click to try this size →</small>' +
+    '</div>';
+}).join('');
+
+[lengthInput, widthInput, heightInput].forEach(input => {
+  input.addEventListener('keydown', event => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      compare();
+    }
+  });
+});
 </script>
 </body>
 </html>
